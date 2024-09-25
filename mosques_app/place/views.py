@@ -8,7 +8,6 @@ from core.permissions.IsNotMosqueAdmin import IsNotMosqueAdmin
 from place.serializers import PlaceSerializer
 from core.models import Place
 
-
 # Create your views here.
 class PlaceView(generics.ListAPIView):
     serializer_class = PlaceSerializer
