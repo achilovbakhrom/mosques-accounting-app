@@ -1,9 +1,13 @@
 """ Views for the user API. """
+import json
+
+from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions
 
 from core.models import ActivityLog
 from core.utils import get_client_ip
 from user.serializers import UserSerializer, CustomTokenObtainPairSerializer
+from .dto.me import MeSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
@@ -15,15 +19,17 @@ class CreateUserView(generics.CreateAPIView):
     """Create a new user in the system."""
     serializer_class = UserSerializer
 
-class ManageUserView(generics.RetrieveUpdateAPIView):
+class ManageUserView(generics.RetrieveAPIView):
     """Manage the authenticated user."""
-    serializer_class = UserSerializer
+    serializer_class = MeSerializer
     # authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         """Retrieve and return the authenticated user."""
-        return self.request.user
+        user = self.request.user
+
+        return user
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):

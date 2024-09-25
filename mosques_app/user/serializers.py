@@ -9,8 +9,6 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from core.models import ActivityLog
 from core.utils import get_client_ip
 
-
-
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for user object"""
 
@@ -65,6 +63,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Log the login activity
         user = self.user
+
         request = self.context.get('request')
 
         remote_addr = get_client_ip(request)

@@ -5,5 +5,7 @@ from core.serializers import AuditSerializerMixin
 class PlaceSerializer(AuditSerializerMixin):
     class Meta:
         model = Place
-        fields = ['id', 'name', 'parent', 'place_type']
+        fields = ['id', 'name', 'place_type', 'parent']
         read_only = ['id']
+
+
