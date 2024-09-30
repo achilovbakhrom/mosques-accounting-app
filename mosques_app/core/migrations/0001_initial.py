@@ -68,7 +68,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('name', models.CharField(max_length=255)),
-                ('place_type', models.CharField(choices=[('region', 'Регион'), ('city', 'Город'), ('mosquee', 'Мечеть')], default='region', max_length=10)),
+                ('place_type', models.CharField(choices=[('region', 'Регион'), ('city', 'Город'), ('mosque', 'Мечеть')], default='region', max_length=10)),
                 ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_%(class)s_set', to=settings.AUTH_USER_MODEL)),
                 ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.place')),
                 ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='updated_%(class)s_set', to=settings.AUTH_USER_MODEL)),

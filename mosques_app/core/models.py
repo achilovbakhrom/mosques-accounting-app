@@ -1,3 +1,4 @@
+from django.contrib.sitemaps.views import index
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -139,20 +140,21 @@ class AuditableModel(models.Model):
     class Meta:
         abstract = True
 
-class Unit(AuditableModel):
+class Unit(models.Model):
     """Unit for category"""
     name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
 
-
-
-class Category(AuditableModel):
+class Category(models.Model):
 
     class Meta:
         verbose_name = 'Category'
         verbose_name_plural = "Categories"
+        indexes = [
+            models.Index(fields=['name'])
+        ]
 
     """The Category"""
     class OperationType(models.TextChoices):
@@ -167,7 +169,7 @@ class Category(AuditableModel):
         default = OperationType.EXPENSE,
     )
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, default=None)
-    percentage = models.DecimalField(max_digits=10, decimal_places=2, null=False, default=25)
+    percentage = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=None)
 
     def __str__(self):
         return self.name
@@ -176,9 +178,9 @@ class Place(AuditableModel):
     """It can be Region, City or Mosquee"""
     class PlaceType(models.TextChoices):
         """Region, City or Mosque"""
-        REGION = 'region', 'Регион'
-        CITY = 'city', 'Город'
-        MOSQUE = 'mosquee', 'Мечеть'
+        REGION = 'region', 'Вилоят'
+        CITY = 'city', 'Шахар'
+        MOSQUE = 'mosque', 'Масжид'
     name = models.CharField(max_length=255, null=False, blank=False)
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
     place_type = models.CharField(max_length=10, choices=PlaceType.choices, default=PlaceType.REGION)
@@ -192,9 +194,11 @@ class Record(AuditableModel):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=False, default=0)
     quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
     description = models.CharField(max_length=500, null=True, blank=True)
     place = models.ForeignKey(Place, on_delete=models.CASCADE, null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.place}, {self.category}, {self.amount}, {self.description}"

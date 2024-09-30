@@ -33,3 +33,16 @@ class AuditSerializerMixin(serializers.ModelSerializer):
         request = self.context.get('request', None)
 
         instance.delete(request=request)
+
+    def to_internal_value(self, data):
+        # This will ensure that the `id` is passed through to the validated data
+        category_id = data.get('id', None)
+
+        # Call the default to_internal_value to handle normal validation
+        validated_data = super().to_internal_value(data)
+
+        # If there's an ID, include it in the validated data
+        if category_id is not None:
+            validated_data['id'] = category_id
+
+        return validated_data

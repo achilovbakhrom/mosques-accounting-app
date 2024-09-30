@@ -1,12 +1,51 @@
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from rest_framework import generics
+from rest_framework import generics, filters
 from rest_framework.exceptions import PermissionDenied, NotFound
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.pagination import CustomPagination
 from core.permissions.IsNotMosqueAdmin import IsNotMosqueAdmin
 from place.serializers import PlaceSerializer
 from core.models import Place
+
+class PlaceDetailView(generics.RetrieveAPIView):
+    queryset = Place.objects.all()
+    serializer_class = PlaceSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+class PlaceViewMosques(generics.ListAPIView):
+    serializer_class = PlaceSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+    queryset = Place.objects.all()
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='place_id', description='PlaceId', required=False, type=int),
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        """
+        Optionally filter the queryset by a custom query parameter (e.g., 'published_year')
+        in addition to the search functionality provided by SearchFilter.
+        """
+        queryset = super().get_queryset()
+
+        # Get the 'published_year' query parameter
+        parent_id = self.request.query_params.get('place_id', None)
+
+        if parent_id:
+            # Filter by the year of publication
+            queryset = queryset.filter(parent=parent_id)
+
+        return queryset
 
 # Create your views here.
 class PlaceView(generics.ListAPIView):

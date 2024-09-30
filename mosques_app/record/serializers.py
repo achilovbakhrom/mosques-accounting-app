@@ -1,23 +1,43 @@
 from rest_framework.exceptions import ValidationError, PermissionDenied
+from rest_framework import serializers
 
+from category.serializers import CategorySerializer
+
+from core.models import Record, Place, Category, Unit
 from core.serializers import AuditSerializerMixin
+from place.serializers import PlaceSerializer
+from user.serializers import UserSerializer
 
-from core.models import Record, Place
 
 
 class RecordSerializer(AuditSerializerMixin):
+    category = CategorySerializer()
+    place = PlaceSerializer()
+    created_by = UserSerializer(read_only=True)
+
+
     class Meta:
         model = Record
         fields = '__all__'
 
-
     def create(self, validated_data):
         request = self.context.get('request', None)
         current_user = request.user
-        instance = self.Meta.model(**validated_data)
+        category_data = validated_data.pop('category', None)
+        if category_data is None:
+            raise ValidationError('Specify category')
+
+        place_data = validated_data.pop('place', None)
+
+        instance = Record.objects.create(
+            category_id=category_data.get('id'),
+            place_id=place_data.get('id'),
+            created_by=current_user,
+            **validated_data
+        )
 
         if current_user.role == 'region_admin' or current_user.role == 'admin':
-            place = instance.place
+            place = Place.objects.get(id=place_data.get('id'))
 
             if place is None:
                 raise ValidationError('Specify place id')

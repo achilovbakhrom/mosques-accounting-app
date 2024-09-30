@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, filters
 
 from .serializers import CategorySerializer
 from core.models import Category
@@ -7,6 +7,9 @@ class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = Category.objects.all()
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
+
 
     def get_serializer_context(self):
         # Ensure the request is passed in the context to the serializer

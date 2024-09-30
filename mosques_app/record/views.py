@@ -11,11 +11,10 @@ from record.serializers import RecordSerializer
 
 class RecordView(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
+    queryset = Record.objects.all()
     serializer_class = RecordSerializer
     pagination_class = CustomPagination
     permission_classes = [permissions.IsAuthenticated]
-    queryset = Record.objects.all()
-
 
     @extend_schema(
         parameters=[
@@ -47,7 +46,7 @@ class RecordView(viewsets.ModelViewSet):
                 ids.append(found.parent.parent.id)
 
 
-        if user.place.id not in ids:
+        if user.place is not None and user.place.id not in ids:
             raise ValidationError('Place id does not belong to your area')
 
         records = Record.objects.filter(place_id=place_id)
@@ -74,7 +73,6 @@ class RecordView(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(page, many=True)
         return Response(serializer.data)
-
 
     def get_serializer_context(self):
         context = super(type(self), self).get_serializer_context()

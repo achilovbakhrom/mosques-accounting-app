@@ -54,7 +54,7 @@ admin.site.register(models.User, UserAdmin)
 
 class UnitAdmin(admin.ModelAdmin):
     # Fields to display in the list view
-    list_display = ('id', 'name', 'created_at', 'updated_at', 'created_by', 'updated_by')
+    list_display = ('id', 'name',)
 
     list_editable = ('name',)
 
@@ -63,8 +63,6 @@ class UnitAdmin(admin.ModelAdmin):
     # Add a search bar
     search_fields = ('name',)
 
-    # Add filters
-    list_filter = ('created_by',)
 
 admin.site.register(models.Unit, UnitAdmin)
 
@@ -80,7 +78,7 @@ class ActivityLogAdmin(admin.ModelAdmin):
 admin.site.register(models.ActivityLog, ActivityLogAdmin)
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'percentage', 'operation_type', 'unit', 'created_at', 'updated_at', 'created_by', 'updated_by')
+    list_display = ('id', 'name', 'percentage', 'operation_type', 'unit',)
     search_fields = ('name', 'operation_type',)
 
     list_editable = ('name', 'operation_type', 'percentage')
@@ -98,7 +96,7 @@ class PlaceAdmin(admin.ModelAdmin):
 admin.site.register(models.Place, PlaceAdmin)
 
 class RecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'place', 'date', 'category', 'amount', 'created_by', 'quantity', 'unit', 'description')
-    search_fields = ('date', 'category', 'amount', 'quantity', 'unit', 'description')
+    list_display = ('id', 'place', 'date', 'category', 'amount', 'created_by', 'quantity', 'description')
+    search_fields = ('date', 'category', 'amount', 'quantity', 'description')
 
 admin.site.register(models.Record, RecordAdmin)
