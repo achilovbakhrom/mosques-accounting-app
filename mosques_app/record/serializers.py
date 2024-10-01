@@ -1,9 +1,8 @@
 from rest_framework.exceptions import ValidationError, PermissionDenied
-from rest_framework import serializers
 
 from category.serializers import CategorySerializer
 
-from core.models import Record, Place, Category, Unit
+from core.models import Record, Place
 from core.serializers import AuditSerializerMixin
 from place.serializers import PlaceSerializer
 from user.serializers import UserSerializer

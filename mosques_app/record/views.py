@@ -1,13 +1,18 @@
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import ValidationError, NotFound
-from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 
 from core.models import Record, Place
 from core.pagination import CustomPagination
 from record.serializers import RecordSerializer
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Sum
+from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
+from collections import defaultdict
+from datetime import datetime, timedelta
+from django.utils.dateparse import parse_date
 
 class RecordView(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
@@ -82,3 +87,160 @@ class RecordView(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         serializer = self.get_serializer(instance)
         serializer.delete(instance)
+
+
+class RecordReportView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @extend_schema(
+        summary="Get Expense Report",
+        description="Retrieve the expense report grouped by categories and by the selected period (supports 'daily', 'weekly', or 'monthly'). Fill gaps with zero if no data exists for a particular period.",
+        parameters=[
+            OpenApiParameter(
+                name='period',
+                location=OpenApiParameter.PATH,
+                description="The period for grouping the report ('daily', 'weekly', or 'monthly').",
+                required=True,
+                type=str,
+                enum=['daily', 'weekly', 'monthly']
+            ),
+            OpenApiParameter(
+                name='start',
+                location=OpenApiParameter.QUERY,
+                description="Start date for the report in 'YYYY-MM-DD' format.",
+                required=True,
+                type=str,
+                # example="2024-10-01"
+            ),
+            OpenApiParameter(
+                name='end',
+                location=OpenApiParameter.QUERY,
+                description="End date for the report in 'YYYY-MM-DD' format.",
+                required=True,
+                type=str,
+                # example="2024-10-31"
+            )
+        ],
+        responses={
+            200: OpenApiExample(
+                "Successful Response",
+                value={
+                    "periods": ["2024-09-01", "2024-09-02"],
+                    "data": [
+                        ["Food", 150.00, 200.00, 350.00],
+                        ["Transport", 100.00, 150.00, 250.00],
+                        ["Total", 250.00, 350.00, 600.00]
+                    ]
+                }
+            ),
+            400: OpenApiExample(
+                "Invalid Period or Dates",
+                value={"error": "Invalid period or dates."}
+            )
+        }
+    )
+    def get(self, request, period, *args, **kwargs):
+        # Parse query parameters for start and end dates
+        start_date = request.query_params.get('start')
+        end_date = request.query_params.get('end')
+
+        # Default to current month if no start/end is provided
+        if start_date is None:
+            start_date = datetime.now().strftime('%Y-%m-01')
+        if end_date is None:
+            end_date = datetime.now().strftime('%Y-%m-%d')
+
+        # Convert to date objects
+        start_date = parse_date(start_date)
+        end_date = parse_date(end_date)
+
+        if not start_date or not end_date or start_date > end_date:
+            return Response({"error": "Invalid start or end date."}, status=400)
+
+        # Choose the right truncation method based on period
+        if period == 'daily':
+            trunc_period = TruncDay('date')
+            date_range = self._generate_date_range(start_date, end_date, 'daily')
+            date_format = '%Y-%m-%d'
+        elif period == 'weekly':
+            trunc_period = TruncWeek('date')
+            date_range = self._generate_date_range(start_date, end_date, 'weekly')
+            date_format = '%Y-%W'
+        elif period == 'monthly':
+            trunc_period = TruncMonth('date')
+            date_range = self._generate_date_range(start_date, end_date, 'monthly')
+            date_format = '%Y-%m'
+        else:
+            return Response({"error": "Invalid period. Choose from 'daily', 'weekly', or 'monthly'."}, status=400)
+
+        # Group by the selected period and category
+        expenses = Record.objects.annotate(period=trunc_period).values('period', 'category__name').annotate(
+            total_amount=Sum('amount')).order_by('period')
+
+        # Prepare the table structure
+        report_data = defaultdict(lambda: defaultdict(float))  # Nested dict to store categories and period sums
+
+        # Fill in the data structure
+        for expense in expenses:
+            category = expense['category__name']
+            period_label = expense['period'].strftime(date_format)
+            report_data[category][period_label] = expense['total_amount']
+
+        # Prepare the table data
+        table_data = []
+        category_totals = defaultdict(float)  # Store total for each category
+        column_totals = defaultdict(float)  # Store total for each period/column
+
+        # Fill table data with category sums
+        for category, period_data in report_data.items():
+            row = [category]  # Start the row with the category name
+            category_sum = 0
+            for period_label in date_range:
+                amount = period_data.get(period_label, 0)  # Get the amount for the period, or 0 if not present
+                row.append(amount)
+                category_sum += amount
+                column_totals[period_label] += float(amount)  # Update the total for this period/column
+            row.append(category_sum)  # Add category total to the row
+            table_data.append(row)
+
+        # Add the final totals row
+        total_row = ['Total']
+        overall_total = 0
+        for period_label in date_range:
+            col_sum = column_totals[period_label]
+            total_row.append(col_sum)
+            overall_total += col_sum
+        total_row.append(overall_total)  # Total of all columns
+        table_data.append(total_row)
+
+        # Construct the response
+        response_data = {
+            "periods": date_range,
+            "data": table_data,
+        }
+
+        return Response(response_data)
+
+    def _generate_date_range(self, start, end, period):
+        """
+        Generate a date range with the given period (daily, weekly, monthly).
+        """
+        current = start
+        date_range = []
+
+        if period == 'daily':
+            while current <= end:
+                date_range.append(current.strftime('%Y-%m-%d'))
+                current += timedelta(days=1)
+        elif period == 'weekly':
+            while current <= end:
+                date_range.append(current.strftime('%Y-%W'))
+                current += timedelta(weeks=1)
+        elif period == 'monthly':
+            while current <= end:
+                date_range.append(current.strftime('%Y-%m'))
+                # Move to the first day of the next month
+                next_month = current.replace(day=28) + timedelta(days=4)
+                current = next_month.replace(day=1)
+
+        return date_range

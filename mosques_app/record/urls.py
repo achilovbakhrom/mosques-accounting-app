@@ -9,9 +9,11 @@ from record import views
 app_name = 'record'
 
 router = DefaultRouter()
-router.register('', views.RecordView)
+router.register('', views.RecordView, basename="records")
+# router.register('report/', views.RecordReportView, basename="report")
 
 urlpatterns = [
-    path('', include(router.urls), name='place-list'),
+    path('', include(router.urls)),
+    path('report/<str:period>/', views.RecordReportView.as_view(), name="report")
 ]
 
