@@ -23,6 +23,7 @@ class RecordSerializer(AuditSerializerMixin):
         request = self.context.get('request', None)
         current_user = request.user
         category_data = validated_data.pop('category', None)
+        print('in', category_data)
         if category_data is None:
             raise ValidationError('Specify category')
 
@@ -68,6 +69,8 @@ class RecordSerializer(AuditSerializerMixin):
 
         if current_user.role == 'mosque_admin':
             instance.place = request.user.place
+
+        print('in', instance)
 
         instance.save(request=request)
 

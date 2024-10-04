@@ -9,12 +9,17 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 from datetime import timedelta
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
+print('BASE_DIR', BASE_DIR)
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
@@ -24,10 +29,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-+k4xv8_3se^j%#-zdj=fzu$iaogr$7wbhx-99lq943ucc%u!31'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
+# DEBUG = os.getenv('DEBUG', 'False') == 'TRUE';
 DEBUG = True
 
-ALLOWED_HOSTS = []
+print('debug', DEBUG, os.getenv('DEBUG', 'False'))
 
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -61,11 +69,36 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',  # React (or other frontend) running on port 3000
-    'http://127.0.0.1:3000',  # Localhost with 127.0.0.1
+CORS_ALLOW_ALL_ORIGINS = True
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:3000',  # React (or other frontend) running on port 3000
+#     'http://localhost:8000',  # React (or other frontend) running on port 3000
+#     'http://127.0.0.1:3000',  # Localhost with 127.0.0.1
+#     'http://127.0.0.1:8000',  # Localhost with 127.0.0.1
+#     'http://0.0.0.0:3000',  # Localhost with 127.0.0.1
+#     'http://0.0.0.0:8000',  # Localhost with 127.0.0.1
+# ]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
+# Allow certain headers
+CORS_ALLOW_HEADERS = [
+    "Authorization",
+    "Content-Type",
+    "X-CSRFToken",
 ]
 
 ROOT_URLCONF = 'mosques_app.urls'
@@ -92,15 +125,18 @@ WSGI_APPLICATION = 'mosques_app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+db = dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    # if DEBUG == False else {
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #     'NAME': 'postgres',
+    #     'USER': 'sprice',
+    #     'PASSWORD': 'sprice',
+    #     'HOST': 'localhost',
+    #     'PORT': '5432',
+    # }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'sprice',
-        'PASSWORD': 'sprice',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': db
 }
 
 
@@ -138,11 +174,22 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = '/static/static/'
-MEDIA_URL = '/static/media/'
+# STATIC_URL = '/static/static/'
+# MEDIA_URL = '/static/media/'
+#
+# MEDIA_ROOT = '/vol/web/media'
+# STATIC_ROOT = '/vol/web/static'
 
-MEDIA_ROOT = '/vol/web/media'
-STATIC_ROOT = '/vol/web/static'
+# Static files (CSS, JavaScript, images)
+STATIC_URL = '/static/'
+
+# The directory where 'collectstatic' will collect static files
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

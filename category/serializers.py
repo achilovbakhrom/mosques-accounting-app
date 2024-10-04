@@ -4,7 +4,7 @@ from unit.serializers import UnitSerializer
 
 
 class CategorySerializer(AuditSerializerMixin):
-    unit = UnitSerializer()
+    unit = UnitSerializer(required=False, allow_null=True)
     """Category serializer"""
     class Meta:
         model = Category

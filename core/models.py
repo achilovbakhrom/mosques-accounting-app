@@ -1,10 +1,10 @@
-from django.contrib.sitemaps.views import index
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
+from django.utils import timezone
 
 class UserManager(BaseUserManager):
     """Manager for users."""
@@ -150,8 +150,8 @@ class Unit(models.Model):
 class Category(models.Model):
 
     class Meta:
-        verbose_name = 'Category'
-        verbose_name_plural = "Categories"
+        verbose_name = 'Категория'
+        verbose_name_plural = "Категориялар"
         indexes = [
             models.Index(fields=['name'])
         ]
@@ -159,8 +159,8 @@ class Category(models.Model):
     """The Category"""
     class OperationType(models.TextChoices):
         """Type of category: income or expense"""
-        INCOME = 'income', 'Приход'
-        EXPENSE = 'expense', 'Расход'
+        INCOME = 'income', 'Кирим'
+        EXPENSE = 'expense', 'Чиким'
 
     name = models.CharField(max_length=255)
     operation_type = models.CharField(
@@ -168,14 +168,14 @@ class Category(models.Model):
         choices = OperationType.choices,
         default = OperationType.EXPENSE,
     )
-    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, default=None)
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, default=None, blank=True)
     percentage = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=None)
 
     def __str__(self):
         return self.name
 
 class Place(AuditableModel):
-    """It can be Region, City or Mosquee"""
+    """It can be Region, City or Mosque"""
     class PlaceType(models.TextChoices):
         """Region, City or Mosque"""
         REGION = 'region', 'Вилоят'
@@ -190,7 +190,7 @@ class Place(AuditableModel):
 
 class Record(AuditableModel):
     """Main document for accounting expenses and incomes"""
-    date = models.DateField(auto_now=True, null=False)
+    date = models.DateField(null=True, blank=True, default=timezone.now())
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=False, default=0)
     quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -202,3 +202,5 @@ class Record(AuditableModel):
 
     def __str__(self):
         return f"{self.place}, {self.category}, {self.amount}, {self.description}"
+
+
