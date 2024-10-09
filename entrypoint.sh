@@ -2,7 +2,8 @@
 
 # Apply database migrations
 echo "Applying database migrations..."
-poetry run python manage.py migrate
+poetry run python manage.py migrate &&
+             poetry run python manage.py createsuperuser --no-input || true
 
 # Collect static files
 echo "Collecting static files..."

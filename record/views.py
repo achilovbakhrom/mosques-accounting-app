@@ -214,7 +214,7 @@ class RecordReportView(APIView):
             row.append(category_sum)
             table_data.append(row)
 
-        total_row = ['Total']
+        total_row = ['Жами']
         overall_total = 0
         for period_label in date_range:
             col_sum = column_totals[period_label]

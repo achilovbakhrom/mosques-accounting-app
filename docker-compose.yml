@@ -26,6 +26,19 @@ services:
       SECRET_KEY: 5ecre1_ke11
       DJANGO_ALLOWED_HOSTS: localhost 127.0.0.1 [::1]
       DATABASE_URL: postgres://mosque_app:m05q11e_app@db:5432/mosque_app
+      DJANGO_SUPERUSER_USERNAME: "admin"
+      DJANGO_SUPERUSER_PASSWORD: "admin123"
+      DJANGO_SUPERUSER_EMAIL: "admin@example.com"
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ../mosque-accounting-front  # This points to the front-end app Dockerfile location
+    ports:
+      - "3000:3000"  # Exposing port 3000 for the front-end
+    depends_on:
+      - web  # Depends on the web service (optional)
     networks:
       - app-network
 

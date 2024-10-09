@@ -126,14 +126,6 @@ WSGI_APPLICATION = 'mosques_app.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 db = dj_database_url.config(default=os.getenv('DATABASE_URL'))
-    # if DEBUG == False else {
-    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #     'NAME': 'postgres',
-    #     'USER': 'sprice',
-    #     'PASSWORD': 'sprice',
-    #     'HOST': 'localhost',
-    #     'PORT': '5432',
-    # }
 
 DATABASES = {
     'default': db
