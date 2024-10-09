@@ -79,35 +79,10 @@ CSRF_TRUSTED_ORIGINS = [
     # Add other domains if necessary
 ]
 
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:3000',  # React (or other frontend) running on port 3000
-#     'http://localhost:8000',  # React (or other frontend) running on port 3000
-#     'http://127.0.0.1:3000',  # Localhost with 127.0.0.1
-#     'http://127.0.0.1:8000',  # Localhost with 127.0.0.1
-#     'http://0.0.0.0:3000',  # Localhost with 127.0.0.1
-#     'http://0.0.0.0:8000',  # Localhost with 127.0.0.1
-# ]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS=True
-
-
-# CORS_ALLOW_METHODS = [
-#     "GET",
-#     "POST",
-#     "PUT",
-#     "PATCH",
-#     "DELETE",
-#     "OPTIONS",
-# ]
-#
-# # Allow certain headers
-# CORS_ALLOW_HEADERS = [
-#     "Authorization",
-#     "Content-Type",
-#     "X-CSRFToken",
-# ]
 
 ROOT_URLCONF = 'mosques_app.urls'
 
