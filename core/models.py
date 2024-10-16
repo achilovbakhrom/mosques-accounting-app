@@ -182,6 +182,7 @@ class Place(AuditableModel):
         CITY = 'city', 'Шахар'
         MOSQUE = 'mosque', 'Масжид'
     name = models.CharField(max_length=255, null=False, blank=False)
+    inn = models.CharField(max_length=255, null=False, blank=True, default='')
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
     place_type = models.CharField(max_length=10, choices=PlaceType.choices, default=PlaceType.REGION)
 

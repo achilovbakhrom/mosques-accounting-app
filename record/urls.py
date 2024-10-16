@@ -14,6 +14,7 @@ router.register('', views.RecordView, basename="records")
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('report/<str:period>/', views.RecordReportView.as_view(), name="report")
+    path('report/<str:period>/', views.RecordReportView.as_view(), name="report"),
+    path('report-hierarchicallly/<str:period>/', views.RecordHierarchicallyReportView.as_view(), name="report"),
 ]
 
