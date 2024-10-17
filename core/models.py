@@ -1,3 +1,4 @@
+from django.contrib.sitemaps.views import index
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -30,6 +31,10 @@ class UserManager(BaseUserManager):
         return user
 
 class User(AbstractBaseUser, PermissionsMixin):
+    class Meta:
+        verbose_name = 'Фойдаланувчи'
+        verbose_name_plural = "Фойдаланувчилар"
+
     """User in the system."""
     ROLE_CHOICES = (
         ('admin', 'СуперАдмин'),
@@ -50,6 +55,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{self.username} - {self.name}"
 
 class ActivityLog(models.Model):
+    class Meta:
+        verbose_name = 'Лог'
+        verbose_name_plural = "Логлар"
+
     ACTION_CHOICES = [
         ('create', 'Create'),
         ('update', 'Update'),
@@ -141,6 +150,9 @@ class AuditableModel(models.Model):
         abstract = True
 
 class Unit(models.Model):
+    class Meta:
+        verbose_name = 'Улчов бирлиги'
+        verbose_name_plural = "Улчов бирликлари"
     """Unit for category"""
     name = models.CharField(max_length=50)
 
@@ -175,6 +187,12 @@ class Category(models.Model):
         return self.name
 
 class Place(AuditableModel):
+    class Meta:
+        verbose_name = 'Жой'
+        verbose_name_plural = "Жойлар"
+        indexes = [
+            models.Index(fields=['name', 'inn'])
+        ]
     """It can be Region, City or Mosque"""
     class PlaceType(models.TextChoices):
         """Region, City or Mosque"""
@@ -190,6 +208,11 @@ class Place(AuditableModel):
         return self.name
 
 class Record(AuditableModel):
+    class Meta:
+        verbose_name = 'Кирим/Чиким'
+        verbose_name_plural = "Киримлар/Чикимлар"
+        ordering = ['-created_at']
+
     """Main document for accounting expenses and incomes"""
     date = models.DateField(null=True, blank=True, default=timezone.now())
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -197,9 +220,6 @@ class Record(AuditableModel):
     quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     description = models.CharField(max_length=500, null=True, blank=True)
     place = models.ForeignKey(Place, on_delete=models.CASCADE, null=True, blank=True)
-
-    class Meta:
-        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.place}, {self.category}, {self.amount}, {self.description}"
