@@ -92,6 +92,7 @@ class PlaceAdmin(admin.ModelAdmin):
     list_per_page = 50
     list_display = ('id', 'name', 'inn', 'parent', 'is_mosque',)
     list_select_related = ('parent',)
+    autocomplete_fields = ['parent']
     search_fields = ('name', 'inn', 'is_mosque',)
     list_editable = ('name', 'inn', 'is_mosque',)
     list_display_links = None
