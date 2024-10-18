@@ -89,9 +89,11 @@ class CategoryAdmin(admin.ModelAdmin):
 admin.site.register(models.Category, CategoryAdmin)
 
 class PlaceAdmin(admin.ModelAdmin):
+    list_per_page = 50
     list_display = ('id', 'name', 'inn', 'parent', 'is_mosque',)
+    list_select_related = ('parent',)
     search_fields = ('name', 'inn', 'is_mosque',)
-    list_editable = ('name', 'inn', 'parent', 'is_mosque',)
+    list_editable = ('name', 'inn', 'is_mosque',)
     list_display_links = None
 
 admin.site.register(models.Place, PlaceAdmin)
