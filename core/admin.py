@@ -12,6 +12,7 @@ class UserAdmin(BaseUserAdmin):
     """Define the admin pages for users."""
     ordering = ['id']
     list_display = ['username', 'name', 'place', 'role']
+    autocomplete_fields = ['place']
     list_editable = ['username', 'place', 'role']
     list_display_links = None
     fieldsets = (
