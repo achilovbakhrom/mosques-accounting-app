@@ -55,10 +55,18 @@ class PlaceView(generics.ListAPIView):
     queryset = Place.objects.all()
 
     @staticmethod
-    def _get_place_type(place_id):
-        place = Place.objects.get(pk = place_id)
+    def _place_id_belongs_to(place_id: int, user_place_id: int):
+        if place_id == user_place_id:
+            return True
 
-        return place.place_type
+        found_place = Place.objects.get(pk = place_id)
+        if found_place is not None:
+            parent = found_place.parent
+            while parent is not None:
+                if parent.id == user_place_id:
+                    return True
+
+        return False
 
     @staticmethod
     def _get_city_parent_id(place_id):
@@ -79,45 +87,16 @@ class PlaceView(generics.ListAPIView):
         qp_place_id = request.query_params.get('place_id')
         place_id = qp_place_id or current_user.place_id
         role = current_user.role
-        places = None
+
         match role:
             case 'admin':
-                if place_id is None:
-                    places = query_set.filter(place_type=Place.PlaceType.REGION)
-                else:
-                    places = query_set.filter(parent = place_id)
+                places = query_set.filter(parent = place_id)
             case 'region_admin':
-                if qp_place_id is None:
-                    place_id = current_user.place_id
+                print('123', place_id, current_user.place_id, self._place_id_belongs_to(place_id, current_user.place_id))
+                if self._place_id_belongs_to(int(place_id), int(current_user.place_id)):
                     places = query_set.filter(parent = place_id)
-                elif qp_place_id is not None:
-                    place_type = self._get_place_type(qp_place_id)
-                    if place_type == Place.PlaceType.REGION and qp_place_id != str(current_user.place_id):
-                        raise PermissionDenied('User does not have permission')
-                    elif place_type == Place.PlaceType.REGION and qp_place_id == str(current_user.place_id):
-                        places = query_set.filter(parent=qp_place_id)
-                    elif place_type == Place.PlaceType.CITY:
-                        parent = self._get_city_parent_id(qp_place_id)
-                        if parent == current_user.place_id:
-                            places = query_set.filter(parent=qp_place_id)
-                        else:
-                            raise PermissionDenied('User does not have permission')
-                    elif place_type == Place.PlaceType.MOSQUE:
-                        raise NotFound('Endpoint does not support mosque type')
-                    else:
-                        places = []
-            case 'city_admin':
-                place_type = self._get_place_type(place_id)
-                if qp_place_id is None or qp_place_id == str(current_user.place_id):
-                    places = query_set.filter(parent=current_user.place_id)
-                elif place_type == Place.PlaceType.REGION:
-                    raise PermissionDenied('User does not have permission')
-                elif place_type == Place.PlaceType.MOSQUE:
-                    raise NotFound('Endpoint does not support mosque type')
-                elif qp_place_id is not None and place_type == Place.PlaceType.CITY and qp_place_id != str(current_user.place_id):
-                    raise PermissionDenied('User does not have permission')
                 else:
-                    places = []
+                    raise PermissionDenied('User does not have permission')
             case 'mosque_admin':
                 raise NotFound('Endpoint does not support mosque type')
             case _:

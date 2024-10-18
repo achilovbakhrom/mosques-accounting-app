@@ -23,7 +23,6 @@ class RecordSerializer(AuditSerializerMixin):
         request = self.context.get('request', None)
         current_user = request.user
         category_data = validated_data.pop('category', None)
-        print('in', category_data)
         if category_data is None:
             raise ValidationError('Specify category')
 
@@ -36,41 +35,19 @@ class RecordSerializer(AuditSerializerMixin):
             **validated_data
         )
 
+        place = Place.objects.get(id=place_data.get('id'))
+
         if current_user.role == 'region_admin' or current_user.role == 'admin':
-            place = Place.objects.get(id=place_data.get('id'))
 
             if place is None:
                 raise ValidationError('Specify place id')
 
-            if place.place_type != Place.PlaceType.MOSQUE:
+            if not place.is_mosque:
                 raise ValidationError('Place type should be MOSQUE')
 
-            if place.parent is None or place.parent.parent is None:
-                raise ValidationError('Invalid place is chosen')
-
-            region_parent_id = place.parent.parent.id
-            if current_user.role == 'region_admin' and current_user.place is not None and region_parent_id != current_user.place.id:
-                raise PermissionDenied('Current mosque does not belong to your region')
-
-
-        if current_user.role == 'city_admin':
-            place_id = instance.place.id
-            place = Place.objects.get(pk = place_id)
-
-            if place is None:
-                raise ValidationError('Specify place id')
-
-            if place.place_type != Place.PlaceType.MOSQUE:
-                raise ValidationError('Place type should be MOSQUE')
-            city_parent_id = place.parent.id
-
-            if city_parent_id != current_user.place.id:
-                raise PermissionDenied('Current mosque does not belong to your city')
 
         if current_user.role == 'mosque_admin':
             instance.place = request.user.place
-
-        print('in', instance)
 
         instance.save(request=request)
 

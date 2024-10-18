@@ -38,9 +38,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     """User in the system."""
     ROLE_CHOICES = (
         ('admin', 'СуперАдмин'),
-        ('region_admin', 'Админ Региона'),
-        ('city_admin', 'Админ Города'),
-        ('mosque_admin', 'Админ Мечети'),
+        ('region_admin', 'Вилоят Админи'),
+        ('mosque_admin', 'Масжид Админи'),
     )
     role = models.CharField(max_length=20, null = True, blank=True, default = 'mosque_admin', choices = ROLE_CHOICES)
     username = models.CharField(max_length=255, unique=True)
@@ -154,7 +153,7 @@ class Unit(models.Model):
         verbose_name = 'Улчов бирлиги'
         verbose_name_plural = "Улчов бирликлари"
     """Unit for category"""
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, verbose_name="Номи")
 
     def __str__(self):
         return self.name
@@ -174,14 +173,14 @@ class Category(models.Model):
         INCOME = 'income', 'Кирим'
         EXPENSE = 'expense', 'Чиким'
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, verbose_name="Номи")
     operation_type = models.CharField(
         max_length = 10,
         choices = OperationType.choices,
         default = OperationType.EXPENSE,
     )
-    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, default=None, blank=True)
-    percentage = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=None)
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, default=None, blank=True, verbose_name="Улчов бирлиги")
+    percentage = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=None, verbose_name="Процент")
 
     def __str__(self):
         return self.name
@@ -194,18 +193,13 @@ class Place(AuditableModel):
             models.Index(fields=['name', 'inn'])
         ]
     """It can be Region, City or Mosque"""
-    class PlaceType(models.TextChoices):
-        """Region, City or Mosque"""
-        REGION = 'region', 'Вилоят'
-        CITY = 'city', 'Шахар'
-        MOSQUE = 'mosque', 'Масжид'
-    name = models.CharField(max_length=255, null=False, blank=False)
-    inn = models.CharField(max_length=255, null=False, blank=True, default='')
-    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
-    place_type = models.CharField(max_length=10, choices=PlaceType.choices, default=PlaceType.REGION)
+    name = models.CharField(max_length=255, null=False, blank=False, verbose_name="Номи")
+    inn = models.CharField(max_length=255, null=False, blank=True, default='', verbose_name="ИНН")
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, verbose_name="Тегишли")
+    is_mosque = models.BooleanField(null=False, default=False, verbose_name="Масжид")
 
     def __str__(self):
-        return self.name
+        return f"{self.name}, ({ self.inn or 'No Inn' })"
 
 class Record(AuditableModel):
     class Meta:
@@ -214,12 +208,12 @@ class Record(AuditableModel):
         ordering = ['-created_at']
 
     """Main document for accounting expenses and incomes"""
-    date = models.DateField(null=True, blank=True, default=timezone.now())
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, null=False, default=0)
-    quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    description = models.CharField(max_length=500, null=True, blank=True)
-    place = models.ForeignKey(Place, on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateField(null=True, blank=True, default=timezone.now(), verbose_name="Вакти")
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="Категория")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, null=False, default=0, verbose_name="Сумма")
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Микдор")
+    description = models.CharField(max_length=500, null=True, blank=True, verbose_name="Изох")
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Жой")
 
     def __str__(self):
         return f"{self.place}, {self.category}, {self.amount}, {self.description}"
