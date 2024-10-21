@@ -1,15 +1,16 @@
 from drf_spectacular.types import OpenApiTypes
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.generics import RetrieveAPIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
 
-from core.models import Record, Place
+from core.models import Record, Place, Category
 from core.pagination import CustomPagination
 from record.serializers import RecordSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import Sum
+from django.db.models import Sum, Case, When, F, FloatField
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -121,6 +122,8 @@ class AbstractRecordReportView(APIView):
                 place_ids.append(child.id)
                 queue.append(child.id)
         return place_ids
+
+
 
 
 class RecordReportView(AbstractRecordReportView):
@@ -265,7 +268,16 @@ class RecordReportView(AbstractRecordReportView):
         return Response(response_data)
 
 
+class ReportProfitView(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
 
+    def retrieve(self, request, *args, **kwargs):
+        result = Record.objects.filter(place=kwargs.get('place_id')).aggregate(total=Sum(Case(
+            When(category__operation_type=Category.OperationType.EXPENSE, then=F('amount') * -1),
+            default=F('amount'),
+            output_field=FloatField()
+        )))
+        return Response(result)
 
 
 class RecordHierarchicallyReportView(AbstractRecordReportView):

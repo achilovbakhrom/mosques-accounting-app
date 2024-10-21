@@ -16,5 +16,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('report/<str:period>/', views.RecordReportView.as_view(), name="report"),
     path('report-hierarchicallly/<str:period>/', views.RecordHierarchicallyReportView.as_view(), name="report"),
+    path('report-profit/<int:place_id>/', views.ReportProfitView.as_view(), name="profit"),
 ]
 
