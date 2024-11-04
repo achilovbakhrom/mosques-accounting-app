@@ -30,6 +30,15 @@ class UserManager(BaseUserManager):
 
         return user
 
+class Position(models.Model):
+    class Meta:
+        verbose_name = 'Лавозим'
+        verbose_name_plural = "Лавозимлар"
+    name = models.CharField(max_length=50, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
 class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = 'Фойдаланувчи'
@@ -49,6 +58,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     place = models.ForeignKey('Place', on_delete=models.CASCADE, null=True, blank=True,)
     objects = UserManager()
     USERNAME_FIELD = 'username'
+    objective_file = models.FileField(upload_to='files/objectives', verbose_name="Объективка", null=True, blank=True)
+    position = models.ForeignKey(Position, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Лавозими")
 
     def __str__(self):
         return f"{self.username} - {self.name}"
@@ -197,6 +208,7 @@ class Place(AuditableModel):
     inn = models.CharField(max_length=255, null=False, blank=True, default='', verbose_name="ИНН")
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, verbose_name="Тегишли")
     is_mosque = models.BooleanField(null=False, default=False, verbose_name="Масжид")
+    employee_count = models.IntegerField(null=False, default=0, verbose_name="Ишчилар сони")
 
     def __str__(self):
         return f"{self.name}, ({ self.inn or 'No Inn' })"

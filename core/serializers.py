@@ -1,5 +1,13 @@
 from rest_framework import serializers
 
+from core.models import Position
+
+
+class PositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Position
+        fields = ['id', 'name']
+        read_only = ['id']
 
 class AuditSerializerMixin(serializers.ModelSerializer):
     class Meta:

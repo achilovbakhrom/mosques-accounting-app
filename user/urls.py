@@ -17,4 +17,5 @@ urlpatterns = [
     path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', views.CreateUserView.as_view(), name='create'),
     path('me/', views.ManageUserView.as_view(), name='me'),
+    path('place/<int:place_id>/', views.UserPlaceView.as_view(), name='user_by_place_id')
 ]

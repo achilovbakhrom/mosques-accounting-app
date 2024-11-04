@@ -11,9 +11,9 @@ from core import models
 class UserAdmin(BaseUserAdmin):
     """Define the admin pages for users."""
     ordering = ['id']
-    list_display = ['username', 'name', 'place', 'role']
+    list_display = ['username', 'name', 'place', 'objective_file', 'role', 'position']
     autocomplete_fields = ['place']
-    list_editable = ['username', 'place', 'role']
+    list_editable = ['username', 'place', 'role', 'objective_file', 'position']
     list_display_links = None
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
@@ -41,6 +41,8 @@ class UserAdmin(BaseUserAdmin):
                 'role',
                 'name',
                 'place',
+                'objective_file',
+                'position',
                 'is_active',
                 'is_staff',
                 'is_superuser',
@@ -90,11 +92,11 @@ admin.site.register(models.Category, CategoryAdmin)
 
 class PlaceAdmin(admin.ModelAdmin):
     list_per_page = 50
-    list_display = ('id', 'name', 'inn', 'parent', 'is_mosque',)
+    list_display = ('id', 'name', 'inn', 'parent', 'is_mosque', 'employee_count',)
     list_select_related = ('parent',)
     autocomplete_fields = ['parent']
     search_fields = ('name', 'inn', 'is_mosque',)
-    list_editable = ('name', 'inn', 'is_mosque',)
+    list_editable = ('name', 'inn', 'is_mosque', 'employee_count',)
     list_display_links = None
 
 admin.site.register(models.Place, PlaceAdmin)
@@ -104,3 +106,9 @@ class RecordAdmin(admin.ModelAdmin):
     search_fields = ('date', 'category', 'amount', 'quantity', 'description')
 
 admin.site.register(models.Record, RecordAdmin)
+
+class PositionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ('name',)
+
+admin.site.register(models.Position, PositionAdmin)

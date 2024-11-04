@@ -7,15 +7,18 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from core.models import ActivityLog
+from core.serializers import PositionSerializer
 from core.utils import get_client_ip
 
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for user object"""
 
+    position = PositionSerializer()
+
     class Meta:
         model = get_user_model()
-        fields = ['username', 'password', 'name']
+        fields = ['username', 'password', 'position', 'name', 'objective_file']
         extra_kwargs = {'password': {'write_only': True, 'min_length': 5}}
 
     def create(self, validated_data):
@@ -79,5 +82,3 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         )
 
         return data
-
-

@@ -2,7 +2,10 @@
 import json
 
 from django.contrib.auth import get_user_model
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import generics, permissions
+from rest_framework.generics import ListAPIView
+
 
 from core.models import ActivityLog
 from core.utils import get_client_ip
@@ -61,3 +64,17 @@ class LogoutView(APIView):
             return Response({"detail": "Logout successful."}, status=200)
         except Exception as e:
             return Response({"detail": str(e)}, status=400)
+
+class UserPlaceView(ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserSerializer
+    queryset = get_user_model().objects.all()
+
+    def get_queryset(self):
+        queryset = self.queryset.all()
+        place_id = self.kwargs.get('place_id')
+
+        if place_id is None:
+            raise ValueError('Place id is required')
+
+        return queryset.filter(place_id=place_id)

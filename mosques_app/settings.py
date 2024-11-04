@@ -104,7 +104,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mosques_app.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -148,12 +147,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-# STATIC_URL = '/static/static/'
-# MEDIA_URL = '/static/media/'
-#
-# MEDIA_ROOT = '/vol/web/media'
-# STATIC_ROOT = '/vol/web/static'
 
 # Static files (CSS, JavaScript, images)
 STATIC_URL = '/static/'
