@@ -7,7 +7,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExampl
 
 from core.models import Record, Place, Category
 from core.pagination import CustomPagination
-from record.serializers import RecordSerializer
+from record.serializers import RecordSerializer, ReportValueSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Sum, Case, When, F, FloatField
@@ -267,19 +267,6 @@ class RecordReportView(AbstractRecordReportView):
 
         return Response(response_data)
 
-
-class ReportProfitView(RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def retrieve(self, request, *args, **kwargs):
-        result = Record.objects.filter(place=kwargs.get('place_id')).aggregate(total=Sum(Case(
-            When(category__operation_type=Category.OperationType.EXPENSE, then=F('amount') * -1),
-            default=F('amount'),
-            output_field=FloatField()
-        )))
-        return Response(result)
-
-
 class RecordHierarchicallyReportView(AbstractRecordReportView):
     @extend_schema(
         summary="Get Hierarchical Expense Report",
@@ -465,3 +452,92 @@ class RecordHierarchicallyReportView(AbstractRecordReportView):
         data_table.append(total_row)
 
         return {'periods': date_range, 'data': data_table}
+
+
+class ReportProfitView(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        result = Record.objects.filter(place=kwargs.get('place_id')).aggregate(total=Sum(Case(
+            When(category__operation_type=Category.OperationType.EXPENSE, then=F('amount') * -1),
+            default=F('amount'),
+            output_field=FloatField()
+        )))
+        return Response(result)
+
+class ReportValueView(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @extend_schema(
+        summary="Get Value Report",
+        description=(
+                "Retrieve report by start and date range"
+                "category with units will be returned"
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='place_id',
+                location=OpenApiParameter.PATH,
+                description="Place Id",
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name='start',
+                location=OpenApiParameter.QUERY,
+                description="Start date for the report in 'YYYY-MM-DD' format.",
+                required=True,
+                type=OpenApiTypes.DATE,
+            ),
+            OpenApiParameter(
+                name='end',
+                location=OpenApiParameter.QUERY,
+                description="End date for the report in 'YYYY-MM-DD' format.",
+                required=True,
+                type=OpenApiTypes.DATE,
+            )
+        ],
+        responses={
+            200: OpenApiResponse(
+                description="Successful Response",
+                examples=[
+                    OpenApiExample(
+                        "Successful Response",
+                        value={
+                            "Category 1": 100,
+                            "Category 2": 200,
+
+                        }
+                    )
+                ],
+            ),
+            400: OpenApiResponse(
+                description="Invalid Period or Dates",
+                examples=[
+                    OpenApiExample(
+                        "Invalid Period or Dates",
+                        value={"error": "Invalid period or dates."}
+                    )
+                ],
+            )
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        place_id = kwargs.get('place_id')
+        print('place', place_id)
+
+        start_date = request.query_params.get('start')
+        end_date = request.query_params.get('end')
+        categories_with_units = Category.objects.filter(unit__isnull=False)
+        print(f'cats: %s' % categories_with_units)
+
+        data = (Record.objects
+                .filter(place_id=place_id, date__range=(start_date, end_date), category__in=categories_with_units)
+                .values('category_id', 'category__name', 'category__unit__name' )
+                .annotate(total_quantity=Sum('quantity')))
+        print(f'data: %s' % data)
+
+        serializer = ReportValueSerializer(data, many=True)
+
+
+
+        return Response(serializer.data)

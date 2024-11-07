@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from category.serializers import CategorySerializer
@@ -52,3 +53,18 @@ class RecordSerializer(AuditSerializerMixin):
         instance.save(request=request)
 
         return instance
+
+class ReportValueSerializer(serializers.Serializer):
+    category_id = serializers.IntegerField()
+    category_name = serializers.CharField(source='category__name')
+    unit_name = serializers.CharField(source='category__unit__name')
+    total_quantity = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Renaming fields
+        data['category_id'] = instance['category_id']
+        data['category_name'] = instance['category__name']
+        data['unit_name'] = instance['category__unit__name']
+        data['total_quantity'] = instance['total_quantity']
+        return data

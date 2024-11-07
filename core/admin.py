@@ -81,10 +81,10 @@ class ActivityLogAdmin(admin.ModelAdmin):
 admin.site.register(models.ActivityLog, ActivityLogAdmin)
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'percentage', 'operation_type', 'unit',)
+    list_display = ('id', 'name', 'percentage', 'operation_type', 'unit', 'is_communal',)
     search_fields = ('name', 'operation_type',)
 
-    list_editable = ('name', 'operation_type', 'percentage')
+    list_editable = ('name', 'operation_type', 'percentage', 'is_communal',)
 
     list_display_links = None
 
@@ -109,6 +109,7 @@ admin.site.register(models.Record, RecordAdmin)
 
 class PositionAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
+    list_editable = ('name',)
     search_fields = ('name',)
 
 admin.site.register(models.Position, PositionAdmin)

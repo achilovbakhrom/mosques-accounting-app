@@ -34,7 +34,7 @@ class Position(models.Model):
     class Meta:
         verbose_name = 'Лавозим'
         verbose_name_plural = "Лавозимлар"
-    name = models.CharField(max_length=50, null=True, blank=True)
+    name = models.CharField(max_length=50, null=True, blank=True, verbose_name="Лавозим номи")
 
     def __str__(self):
         return self.name
@@ -55,7 +55,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    place = models.ForeignKey('Place', on_delete=models.CASCADE, null=True, blank=True,)
+    place = models.ForeignKey('Place', on_delete=models.CASCADE, null=True, blank=True, verbose_name="Жой")
     objects = UserManager()
     USERNAME_FIELD = 'username'
     objective_file = models.FileField(upload_to='files/objectives', verbose_name="Объективка", null=True, blank=True)
@@ -192,6 +192,7 @@ class Category(models.Model):
     )
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, default=None, blank=True, verbose_name="Улчов бирлиги")
     percentage = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=None, verbose_name="Процент")
+    is_communal = models.BooleanField(default=False, verbose_name="Коммунал")
 
     def __str__(self):
         return self.name
