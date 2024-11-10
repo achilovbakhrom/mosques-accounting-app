@@ -528,16 +528,33 @@ class ReportValueView(RetrieveAPIView):
         start_date = request.query_params.get('start')
         end_date = request.query_params.get('end')
         categories_with_units = Category.objects.filter(unit__isnull=False)
-        print(f'cats: %s' % categories_with_units)
+        places = self._get_leaf_places(place_id)
 
         data = (Record.objects
-                .filter(place_id=place_id, date__range=(start_date, end_date), category__in=categories_with_units)
+                .filter(place_id__in=places, date__range=(start_date, end_date), category__in=categories_with_units)
                 .values('category_id', 'category__name', 'category__unit__name' )
                 .annotate(total_quantity=Sum('quantity')))
-        print(f'data: %s' % data)
 
         serializer = ReportValueSerializer(data, many=True)
 
 
 
         return Response(serializer.data)
+
+    def _get_leaf_places(self, place_id: int):
+        # Start by getting the place for the given place_id
+        place = Place.objects.get(id=place_id)
+
+        # Find children of the current place
+        children = Place.objects.filter(parent=place)
+
+        # If there are no children, this place is a leaf node
+        if not children.exists():
+            return [place]
+
+        # Otherwise, recursively find leaf nodes in all children
+        leaf_places = []
+        for child in children:
+            leaf_places.extend(self._get_leaf_places(child.id))
+
+        return leaf_places
