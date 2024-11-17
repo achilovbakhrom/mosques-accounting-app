@@ -92,7 +92,6 @@ class PlaceView(generics.ListAPIView):
             case 'admin':
                 places = query_set.filter(parent = place_id)
             case 'region_admin':
-                print('123', place_id, current_user.place_id, self._place_id_belongs_to(place_id, current_user.place_id))
                 if self._place_id_belongs_to(int(place_id), int(current_user.place_id)):
                     places = query_set.filter(parent = place_id)
                 else:

@@ -523,7 +523,6 @@ class ReportValueView(RetrieveAPIView):
     )
     def get(self, request, *args, **kwargs):
         place_id = kwargs.get('place_id')
-        print('place', place_id)
 
         start_date = request.query_params.get('start')
         end_date = request.query_params.get('end')

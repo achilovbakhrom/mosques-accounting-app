@@ -34,7 +34,7 @@ class Position(models.Model):
     class Meta:
         verbose_name = 'Лавозим'
         verbose_name_plural = "Лавозимлар"
-    name = models.CharField(max_length=50, null=True, blank=True, verbose_name="Лавозим номи")
+    name = models.CharField(max_length=50, null=True, blank=True, verbose_name="Лавозим номи", db_index=True)
 
     def __str__(self):
         return self.name
@@ -51,7 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('mosque_admin', 'Масжид Админи'),
     )
     role = models.CharField(max_length=20, null = True, blank=True, default = 'mosque_admin', choices = ROLE_CHOICES)
-    username = models.CharField(max_length=255, unique=True)
+    username = models.CharField(max_length=255, unique=True, db_index=True)
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -164,7 +164,7 @@ class Unit(models.Model):
         verbose_name = 'Улчов бирлиги'
         verbose_name_plural = "Улчов бирликлари"
     """Unit for category"""
-    name = models.CharField(max_length=50, verbose_name="Номи")
+    name = models.CharField(max_length=50, verbose_name="Номи", db_index=True)
 
     def __str__(self):
         return self.name
@@ -184,7 +184,7 @@ class Category(models.Model):
         INCOME = 'income', 'Кирим'
         EXPENSE = 'expense', 'Чиким'
 
-    name = models.CharField(max_length=255, verbose_name="Номи")
+    name = models.CharField(max_length=255, verbose_name="Номи", db_index=True)
     operation_type = models.CharField(
         max_length = 10,
         choices = OperationType.choices,
@@ -205,8 +205,8 @@ class Place(AuditableModel):
             models.Index(fields=['name', 'inn'])
         ]
     """It can be Region, City or Mosque"""
-    name = models.CharField(max_length=255, null=False, blank=False, verbose_name="Номи")
-    inn = models.CharField(max_length=255, null=False, blank=True, default='', verbose_name="ИНН")
+    name = models.CharField(max_length=255, null=False, blank=False, verbose_name="Номи", db_index=True)
+    inn = models.CharField(max_length=255, null=False, blank=True, default='', verbose_name="ИНН", db_index=True)
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, verbose_name="Тегишли")
     is_mosque = models.BooleanField(null=False, default=False, verbose_name="Масжид")
     employee_count = models.IntegerField(null=False, default=0, verbose_name="Ишчилар сони")
@@ -222,11 +222,11 @@ class Record(AuditableModel):
 
     """Main document for accounting expenses and incomes"""
     date = models.DateField(null=True, blank=True, default=timezone.now(), verbose_name="Вакти")
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="Категория")
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="Категория", db_index=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=False, default=0, verbose_name="Сумма")
     quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Микдор")
     description = models.CharField(max_length=500, null=True, blank=True, verbose_name="Изох")
-    place = models.ForeignKey(Place, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Жой")
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Жой", db_index=True)
 
     def __str__(self):
         return f"{self.place}, {self.category}, {self.amount}, {self.description}"
